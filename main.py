@@ -3,6 +3,7 @@ import time
 import requests
 import os
 from picamera import PiCamera
+from playsound import playsound
 
 
 camera = PiCamera()
@@ -12,7 +13,7 @@ GPIO.setmode(GPIO.BOARD)  # Use physical pin numbering
 GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
-image_path = 'home/pi/selfie.png'
+image_path = '/home/pi/selfie.png'
 
 while(True):
     if GPIO.input(10) == GPIO.HIGH:
@@ -30,3 +31,9 @@ while(True):
         print(response.status_code)
         print(response.json())
         os.remove(image_path)
+        s3file = response.json()['file'] + 'mp3'
+        print("Searching for: " + s3file)
+        r = requests.get(
+            f"http://ec2-18-218-255-55.us-east-2.compute.amazonaws.com:8080/api/v1/download/{s3File}", allow_redirects=True)
+        open('/home/pi/translate.mp3', 'wb').write(r.content)
+        playsound('/home/pi/translate.mp3')
