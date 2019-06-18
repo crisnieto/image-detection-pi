@@ -31,10 +31,14 @@ while(True):
         print(response.status_code)
         print(response.json())
         os.remove(image_path)
-        s3file = response.json()['file'] + 'mp3'
+        s3file = response.json()['file'] + '.mp3'
+        s3path = "http://ec2-18-218-255-55.us-east-2.compute.amazonaws.com:8080/api/v1/download/" + s3file
         print("Searching for: " + s3file)
-        downloadpath = "http://ec2-18-218-255-55.us-east-2.compute.amazonaws.com:8080/api/v1/download/" + s3file
-        bashCommand = "curl -XGET " + downloadpath + " > translate.mp3"
+        r = requests.get(
+            s3path, allow_redirects=True)
+        open('/home/pi/translate.mp3', 'wb').write(r.content)
+        bashCommand = "mplayer -noconsolecontrols translate.mp3"
         import subprocess
         process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-        playsound('/home/pi/translate.mp3')
+        output, error = process.communicate()
+        os.remove("translate.mp3")
